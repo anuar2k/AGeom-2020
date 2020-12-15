@@ -171,9 +171,7 @@ def findIntersections(segments):
     
     def checkForIntersect(seg1, seg2):
         crossP = seg1.intersects(seg2)
-        firstEvent = eventQueue.get()
-        if crossP is not None and crossP[0] >= broom.x and (firstEvent.eventType != EventType.CROSS or distSqr(firstEvent.p, crossP) > EPSILON_SQRT):
-            intersections.append((crossP, (seg1.p1, seg1.p2), (seg2.p1, seg2.p2)))
+        if crossP is not None and crossP[0] >= broom.x:
             eventQueue.put(Event(EventType.CROSS, crossP, seg1, seg2))
 
     def getIndex(seg):
@@ -205,11 +203,14 @@ def findIntersections(segments):
         event = eventQueue.get()
         broom.x = event.p[0]
         print("---------------------------------")
-        print(f"event: {event.eventType}")
+        print(f"event: {event.eventType} with broom: {broom.x}")
         printY()
+
+        # remove duplicates
+        while event.eventType == EventType.CROSS and eventQueue.queue[0] == event:
+            event = eventQueue.get()
         
         if event.eventType == EventType.START:
-
             seg = event.seg
             
             segmentSet.add(seg)
@@ -235,6 +236,8 @@ def findIntersections(segments):
 
         else:
             seg1, seg2 = event.seg, event.seg2
+
+            intersections.append((event.p, (seg1.p1, seg1.p2), (seg2.p1, seg2.p2)))
 
             seg1Idx = getIndex(seg1)
             seg2Idx = getIndex(seg2)
